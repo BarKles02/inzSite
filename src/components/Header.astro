@@ -1,0 +1,64 @@
+---
+import logo from "../assets/logo/logo-horizontal-on-light.svg";
+
+const navLinks = [
+	{ href: "#uslugi", label: "Usługi" },
+	{ href: "#o-firmie", label: "O firmie" },
+	{ href: "#realizacje", label: "Realizacje" },
+	{ href: "#kontakt", label: "Kontakt" },
+];
+---
+
+<header class="site-header">
+	<div class="container">
+		<a href="#" class="logo" aria-label="INZ Kacper Pachut — strona główna">
+			<img src={logo.src} alt="INZ Kacper Pachut" width="170" height="50" />
+		</a>
+
+		<button
+			type="button"
+			class="nav-toggle"
+			id="nav-toggle"
+			aria-expanded="false"
+			aria-controls="primary-nav"
+			aria-label="Otwórz menu"
+		>
+			<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+				<line x1="3" y1="6" x2="21" y2="6"></line>
+				<line x1="3" y1="12" x2="21" y2="12"></line>
+				<line x1="3" y1="18" x2="21" y2="18"></line>
+			</svg>
+		</button>
+
+		<nav class="primary-nav" id="primary-nav" aria-label="Nawigacja główna" data-open="false">
+			<ul class="nav-links">
+				{navLinks.map((link) => (
+					<li><a href={link.href}>{link.label}</a></li>
+				))}
+			</ul>
+			<a href="#kontakt" class="btn btn-primary">Zapytaj o wycenę</a>
+		</nav>
+	</div>
+</header>
+
+<script>
+	const toggle = document.getElementById("nav-toggle");
+	const nav = document.getElementById("primary-nav");
+
+	if (toggle && nav) {
+		toggle.addEventListener("click", () => {
+			const isOpen = nav.getAttribute("data-open") === "true";
+			nav.setAttribute("data-open", String(!isOpen));
+			toggle.setAttribute("aria-expanded", String(!isOpen));
+			toggle.setAttribute("aria-label", isOpen ? "Otwórz menu" : "Zamknij menu");
+		});
+
+		nav.querySelectorAll("a").forEach((link) => {
+			link.addEventListener("click", () => {
+				nav.setAttribute("data-open", "false");
+				toggle.setAttribute("aria-expanded", "false");
+				toggle.setAttribute("aria-label", "Otwórz menu");
+			});
+		});
+	}
+</script>
