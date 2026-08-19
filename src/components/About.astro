@@ -1,0 +1,49 @@
+---
+const values = [
+	{
+		title: "Precyzja",
+		description: "Każdy element projektujemy i wykonujemy w oparciu o dokładne wymiary i tolerancje.",
+	},
+	{
+		title: "Inżynieria",
+		description: "Podejście techniczne od pierwszego szkicu — analiza wykonalności, dobór materiałów, konstrukcja.",
+	},
+	{
+		title: "Druk 3D",
+		description: "Nowoczesne technologie druku addytywnego do prototypów i produkcji małoseryjnej.",
+	},
+	{
+		title: "Custom design",
+		description: "Projekty szyte na miarę — dopasowane do konkretnej potrzeby, przestrzeni i estetyki.",
+	},
+];
+---
+
+<section class="section about-section" id="o-firmie">
+	<div class="container about-grid">
+		<div>
+			<span class="eyebrow">O firmie</span>
+			<h2>Inżynieria, która przechodzi od koncepcji do gotowego produktu</h2>
+			<p>
+				INZ Kacper Pachut to firma inżynierska łącząca projektowanie
+				techniczne z nowoczesną produkcją. Zajmujemy się drukiem 3D,
+				projektowaniem CAD oraz wykonywaniem lamp i oświetlenia na
+				zamówienie — od pierwszego szkicu, przez prototyp, po finalną
+				realizację.
+			</p>
+			<p>
+				Pracujemy zarówno dla klientów indywidualnych, jak i firm
+				potrzebujących jednorazowych elementów technicznych lub
+				powtarzalnych serii produkcyjnych.
+			</p>
+		</div>
+		<div class="value-list">
+			{values.map((value) => (
+				<div class="value-item">
+					<h3>{value.title}</h3>
+					<p>{value.description}</p>
+				</div>
+			))}
+		</div>
+	</div>
+</section>
