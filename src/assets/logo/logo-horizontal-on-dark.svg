@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 340 100" role="img" aria-label="INZ Kacper Pachut">
+	<g stroke="#55BDF2" stroke-width="14" stroke-linecap="square" fill="none">
+		<line x1="25" y1="12" x2="25" y2="88" />
+		<line x1="25" y1="50" x2="82" y2="12" />
+		<line x1="25" y1="50" x2="82" y2="88" />
+	</g>
+	<text x="106" y="46" font-family="Arial, Helvetica, sans-serif" font-size="26" font-weight="700" letter-spacing="0.5" fill="#F7FAFC">INZ</text>
+	<text x="106" y="76" font-family="Arial, Helvetica, sans-serif" font-size="19" font-weight="500" letter-spacing="0.5" fill="#F7FAFC">Kacper Pachut</text>
+</svg>

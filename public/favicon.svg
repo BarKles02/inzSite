@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" aria-label="INZ Kacper Pachut">
+	<g stroke="#55BDF2" stroke-width="16" stroke-linecap="square" fill="none">
+		<line x1="25" y1="10" x2="25" y2="90" />
+		<line x1="25" y1="50" x2="84" y2="10" />
+		<line x1="25" y1="50" x2="84" y2="90" />
+	</g>
+</svg>
