@@ -1,0 +1,58 @@
+---
+const services = [
+	{
+		title: "Druk 3D",
+		description:
+			"Prototypy, części zamienne i produkcja małoseryjna w technologiach FDM i żywicznych.",
+		icon: "cube",
+	},
+	{
+		title: "Projektowanie CAD",
+		description:
+			"Projektowanie produktowe i techniczne — od koncepcji po dokumentację gotową do produkcji.",
+		icon: "draft",
+	},
+	{
+		title: "Lampy i oświetlenie",
+		description:
+			"Autorskie lampy i elementy oświetleniowe projektowane i wykonywane na indywidualne zamówienie.",
+		icon: "bulb",
+	},
+	{
+		title: "Inne usługi inżynierskie",
+		description:
+			"Konsultacje techniczne i realizacje niestandardowe — porozmawiajmy o Twoim projekcie.",
+		icon: "gear",
+	},
+];
+
+const icons: Record<string, string> = {
+	cube: `<path d="M12 2 3 7v10l9 5 9-5V7z"/><path d="M3 7l9 5 9-5"/><path d="M12 12v10"/>`,
+	draft: `<path d="M4 20 20 4"/><path d="M14 4h6v6"/><path d="M4 14v6h6"/>`,
+	bulb: `<path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.3 1 2.1V17h6v-.2c0-.8.4-1.6 1-2.1A7 7 0 0 0 12 2Z"/>`,
+	gear: `<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/>`,
+};
+---
+
+<section class="section services-section" id="uslugi">
+	<div class="container">
+		<div class="section-header">
+			<span class="eyebrow">Usługi</span>
+			<h2>Zakres działalności</h2>
+			<p>Cztery linie usług, jeden zespół — od projektu, przez druk, po gotową realizację.</p>
+		</div>
+
+		<div class="services-grid">
+			{services.map((service) => (
+				<article class="service-card">
+					<span class="service-icon">
+						<svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" set:html={icons[service.icon]} />
+					</span>
+					<h3>{service.title}</h3>
+					<p>{service.description}</p>
+					<a class="service-link" href="#kontakt">Dowiedz się więcej →</a>
+				</article>
+			))}
+		</div>
+	</div>
+</section>
