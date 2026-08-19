@@ -1,0 +1,33 @@
+:root {
+	--ink-black: #08141f;
+	--deep-sky-blue: #55bdf2;
+	--bright-snow: #f7fafc;
+	--cool-steel: #9cafc0;
+	--princeton-orange: #ff8a24;
+
+	--color-bg: var(--bright-snow);
+	--color-text: var(--ink-black);
+	/* cool-steel fails WCAG AA as body text on bright-snow; darkened for contrast, kept for borders/fills */
+	--color-text-muted: #4b5b68;
+	--color-accent: var(--deep-sky-blue);
+	--color-cta: var(--princeton-orange);
+	--color-border: var(--cool-steel);
+
+	--font-sans:
+		"Inter", "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+
+	--container-width: 1180px;
+	--space-1: 0.5rem;
+	--space-2: 1rem;
+	--space-3: 1.5rem;
+	--space-4: 2rem;
+	--space-5: 3rem;
+	--space-6: 4.5rem;
+	--space-7: 7rem;
+
+	--radius-sm: 4px;
+	--radius-md: 8px;
+
+	--shadow-sm: 0 1px 2px rgba(8, 20, 31, 0.08);
+	--shadow-md: 0 8px 24px rgba(8, 20, 31, 0.12);
+}

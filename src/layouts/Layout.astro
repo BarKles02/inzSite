@@ -1,0 +1,31 @@
+---
+import "../styles/variables.css";
+import "../styles/base.css";
+import "../styles/components.css";
+
+interface Props {
+	title?: string;
+	description?: string;
+}
+
+const {
+	title = "INZ Kacper Pachut — usługi inżynierskie: druk 3D, projektowanie CAD, lampy",
+	description = "INZ Kacper Pachut — usługi inżynierskie: druk 3D, projektowanie produktowe i CAD, lampy oraz oświetlenie na zamówienie.",
+} = Astro.props;
+---
+
+<!doctype html>
+<html lang="pl">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>{title}</title>
+		<meta name="description" content={description} />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<meta name="generator" content={Astro.generator} />
+	</head>
+	<body>
+		<a href="#main" class="skip-link">Przejdź do treści</a>
+		<slot />
+	</body>
+</html>
