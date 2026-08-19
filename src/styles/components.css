@@ -171,6 +171,7 @@
 
 /* Hero */
 .hero {
+	position: relative;
 	background-color: var(--bright-snow);
 	overflow: hidden;
 	display: flex;
@@ -179,7 +180,47 @@
 	min-height: 100svh;
 }
 
+.hero-bg {
+	position: absolute;
+	inset: 0;
+	z-index: 0;
+	pointer-events: none;
+	background-image:
+		repeating-linear-gradient(
+			65deg,
+			rgba(85, 189, 242, 0.1) 0 2px,
+			transparent 2px 46px
+		),
+		repeating-linear-gradient(
+			65deg,
+			rgba(8, 20, 31, 0.035) 0 1px,
+			transparent 1px 92px
+		);
+	animation: hero-drift 70s linear infinite;
+}
+
+@keyframes hero-drift {
+	from {
+		background-position:
+			0 0,
+			0 0;
+	}
+	to {
+		background-position:
+			460px 460px,
+			-460px -460px;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.hero-bg {
+		animation: none;
+	}
+}
+
 .hero .container {
+	position: relative;
+	z-index: 1;
 	display: grid;
 	grid-template-columns: 1fr;
 	align-items: center;
