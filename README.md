@@ -18,7 +18,7 @@ współpracy, miejsce na realizacje oraz dane kontaktowe.
 │   └── favicon.svg
 ├── src/
 │   ├── assets/
-│   │   └── logo/            # warianty logo SVG (placeholder — patrz niżej)
+│   │   └── logo/            # warianty logo SVG (finalne pliki firmy)
 │   ├── components/          # jedna sekcja = jeden komponent .astro
 │   ├── layouts/
 │   │   └── Layout.astro     # szkielet HTML, meta tagi, importy CSS
@@ -60,29 +60,27 @@ Zdefiniowana w [src/styles/variables.css](src/styles/variables.css):
 | `--cool-steel`         | `#9CAFC0` | obramowania, tła neutralne                  |
 | `--princeton-orange`   | `#FF8A24` | CTA („Zapytaj o wycenę")                     |
 
-## Logo — placeholder do podmiany
+## Logo
 
-Docelowe pliki logo (z ZIP-a w briefie: warianty horizontal/stacked/lockup/mark
-na jasnym i ciemnym tle) nie znajdowały się w katalogu projektu w momencie
-budowy strony. W `src/assets/logo/` znajdują się placeholdery odtwarzające opis
-z briefu — stylizowana litera „K" złożona z ukośnych, grubych kresek w kolorze
-`--deep-sky-blue`:
+`src/assets/logo/` zawiera finalne pliki SVG dostarczone przez klienta (wszystkie
+warianty z briefu: horizontal na jasnym/ciemnym tle, navy, white, stacked,
+lockup, mark, mark-navy, dark-bg). W użyciu na stronie:
 
-- `logo-mark.svg` — sam sygnet
-- `logo-horizontal-on-light.svg` — sygnet + nazwa, do nagłówka (jasne tło)
-- `logo-horizontal-on-dark.svg` — sygnet + nazwa, do stopki (ciemne tło)
-- `public/favicon.svg` — favicon oparty o sygnet
+- `logo-horizontal-on-light.svg` — nagłówek (jasne tło)
+- `logo-horizontal-on-dark.svg` — stopka (ciemne tło)
+- ścieżki mark (`logo-mark.svg`) — motyw graficzny w sekcji hero
+- `public/favicon.svg` — favicon dostarczony przez klienta
 
-**Po otrzymaniu docelowych plików SVG** wystarczy podmienić zawartość plików w
-`src/assets/logo/` (i `public/favicon.svg`) zachowując te same nazwy — reszta
-strony (import w [Header.astro](src/components/Header.astro) i
-[Footer.astro](src/components/Footer.astro)) nie wymaga zmian.
+Pozostałe warianty (navy, white, stacked, lockup, dark-bg) są zapisane w
+`src/assets/logo/`, gotowe do wykorzystania przy rozbudowie strony (np.
+social media, materiały drukowane, podstrony).
 
 ## Dane kontaktowe — do uzupełnienia
 
+Lokalizacja firmy to Suwałki (potwierdzone przez tagline w plikach logo).
 Sekcja kontaktowa ([src/components/Contact.astro](src/components/Contact.astro))
-i stopka zawierają placeholdery (telefon, e-mail, lokalizacja) — do podmiany na
-prawdziwe dane firmy przed publikacją.
+i stopka nadal zawierają placeholdery dla telefonu, e-maila i dokładnego adresu —
+do podmiany na prawdziwe dane firmy przed publikacją.
 
 ## Formularz kontaktowy
 
