@@ -1,0 +1,26 @@
+---
+const steps = [
+	{ title: "Zapytanie", description: "Opisujesz potrzebę — projekt, szkic, a nawet ogólny pomysł wystarczą na start." },
+	{ title: "Wycena", description: "Przygotowujemy wycenę i harmonogram realizacji, dopasowane do zakresu prac." },
+	{ title: "Realizacja", description: "Projektujemy, drukujemy lub wykonujemy element zgodnie z ustaleniami." },
+	{ title: "Odbiór", description: "Sprawdzasz gotową realizację — w razie potrzeby wprowadzamy poprawki." },
+];
+---
+
+<section class="section process-section">
+	<div class="container">
+		<div class="section-header">
+			<span class="eyebrow">Jak wygląda współpraca</span>
+			<h2>Cztery kroki od pomysłu do realizacji</h2>
+		</div>
+
+		<div class="process-steps">
+			{steps.map((step) => (
+				<div class="process-step">
+					<h3>{step.title}</h3>
+					<p>{step.description}</p>
+				</div>
+			))}
+		</div>
+	</div>
+</section>
