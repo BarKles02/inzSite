@@ -1,7 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" aria-label="INZ Kacper Pachut">
-	<g stroke="#55BDF2" stroke-width="16" stroke-linecap="square" fill="none">
-		<line x1="25" y1="10" x2="25" y2="90" />
-		<line x1="25" y1="50" x2="84" y2="10" />
-		<line x1="25" y1="50" x2="84" y2="90" />
-	</g>
+<?xml version="1.0"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="Favicon – Kacper Pachut">
+<title>Favicon – Kacper Pachut</title>
+<rect width="512" height="512" rx="96" fill="#08141F"></rect><g transform="translate(37.6 -21.4) scale(1.0526)"><path fill="#55BDF2" fill-rule="evenodd" d="M109,339L119,329L296,329L306,339L306,384Q281.5,399.2 257,384Q207.5,399.2 158,384Q133.5,399.2 109,384ZM109,392Q133.5,407.2 158,392Q207.5,407.2 257,392Q281.5,407.2 306,392L292,406L123,406ZM151,132L176,121L264,121L151,154ZM151,170L264,137L264,157L151,190ZM151,206L264,173L264,193L151,226ZM151,242L264,209L264,229L151,262ZM151,278L264,245L264,265L151,298ZM151,314L264,281L264,329L151,329Z"></path></g>
 </svg>
