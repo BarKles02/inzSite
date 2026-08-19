@@ -131,7 +131,11 @@
 
 	.primary-nav {
 		position: fixed;
-		inset: 0 0 0 auto;
+		top: 0;
+		right: 0;
+		bottom: 0;
+		left: auto;
+		z-index: 60;
 		height: 100vh;
 		width: min(320px, 85vw);
 		background: var(--ink-black);
@@ -140,12 +144,17 @@
 		justify-content: flex-start;
 		gap: var(--space-4);
 		padding: var(--space-5) var(--space-3);
+		overflow-y: auto;
 		transform: translateX(100%);
-		transition: transform 0.25s ease;
+		visibility: hidden;
+		transition:
+			transform 0.25s ease,
+			visibility 0.25s;
 	}
 
 	.primary-nav[data-open="true"] {
 		transform: translateX(0);
+		visibility: visible;
 	}
 
 	.primary-nav .nav-links {
@@ -395,23 +404,23 @@
 		transform: translateY(0);
 	}
 	12% {
-		transform: translateY(-20px);
+		transform: translateY(-37px);
 	}
 	23% {
-		transform: translateY(-40px);
+		transform: translateY(-74px);
 	}
 	34% {
-		transform: translateY(-60px);
+		transform: translateY(-111px);
 	}
 	45% {
-		transform: translateY(-80px);
+		transform: translateY(-148px);
 	}
 	56% {
-		transform: translateY(-100px);
+		transform: translateY(-185px);
 	}
 	67%,
 	88% {
-		transform: translateY(-120px);
+		transform: translateY(-222px);
 	}
 	93%,
 	100% {
@@ -422,10 +431,10 @@
 @keyframes printhead-sweep {
 	0%,
 	100% {
-		transform: translateX(-65px);
+		transform: translateX(-80px);
 	}
 	50% {
-		transform: translateX(65px);
+		transform: translateX(80px);
 	}
 }
 
