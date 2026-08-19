@@ -255,6 +255,192 @@
 	height: 100%;
 }
 
+.print-layer {
+	animation-duration: 8s;
+	animation-timing-function: ease-in-out;
+	animation-iteration-count: infinite;
+}
+
+.print-layer-1 {
+	animation-name: print-layer-1;
+}
+.print-layer-2 {
+	animation-name: print-layer-2;
+}
+.print-layer-3 {
+	animation-name: print-layer-3;
+}
+.print-layer-4 {
+	animation-name: print-layer-4;
+}
+.print-layer-5 {
+	animation-name: print-layer-5;
+}
+.print-layer-6 {
+	animation-name: print-layer-6;
+}
+.print-layer-7 {
+	animation-name: print-layer-7;
+}
+
+@keyframes print-layer-1 {
+	0% {
+		opacity: 0;
+	}
+	1%,
+	88% {
+		opacity: 1;
+	}
+	93%,
+	100% {
+		opacity: 0;
+	}
+}
+@keyframes print-layer-2 {
+	0%,
+	11% {
+		opacity: 0;
+	}
+	12%,
+	88% {
+		opacity: 1;
+	}
+	93%,
+	100% {
+		opacity: 0;
+	}
+}
+@keyframes print-layer-3 {
+	0%,
+	22% {
+		opacity: 0;
+	}
+	23%,
+	88% {
+		opacity: 1;
+	}
+	93%,
+	100% {
+		opacity: 0;
+	}
+}
+@keyframes print-layer-4 {
+	0%,
+	33% {
+		opacity: 0;
+	}
+	34%,
+	88% {
+		opacity: 1;
+	}
+	93%,
+	100% {
+		opacity: 0;
+	}
+}
+@keyframes print-layer-5 {
+	0%,
+	44% {
+		opacity: 0;
+	}
+	45%,
+	88% {
+		opacity: 1;
+	}
+	93%,
+	100% {
+		opacity: 0;
+	}
+}
+@keyframes print-layer-6 {
+	0%,
+	55% {
+		opacity: 0;
+	}
+	56%,
+	88% {
+		opacity: 1;
+	}
+	93%,
+	100% {
+		opacity: 0;
+	}
+}
+@keyframes print-layer-7 {
+	0%,
+	66% {
+		opacity: 0;
+	}
+	67%,
+	88% {
+		opacity: 1;
+	}
+	93%,
+	100% {
+		opacity: 0;
+	}
+}
+
+.printhead-y {
+	animation: printhead-rise 8s ease-in-out infinite;
+}
+
+.printhead-x {
+	animation: printhead-sweep 1s ease-in-out infinite;
+}
+
+@keyframes printhead-rise {
+	0%,
+	1% {
+		transform: translateY(0);
+	}
+	12% {
+		transform: translateY(-20px);
+	}
+	23% {
+		transform: translateY(-40px);
+	}
+	34% {
+		transform: translateY(-60px);
+	}
+	45% {
+		transform: translateY(-80px);
+	}
+	56% {
+		transform: translateY(-100px);
+	}
+	67%,
+	88% {
+		transform: translateY(-120px);
+	}
+	93%,
+	100% {
+		transform: translateY(0);
+	}
+}
+
+@keyframes printhead-sweep {
+	0%,
+	100% {
+		transform: translateX(-65px);
+	}
+	50% {
+		transform: translateX(65px);
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.print-layer {
+		animation: none;
+		opacity: 1;
+	}
+	.printhead-y,
+	.printhead-x {
+		animation: none;
+		transform: none;
+	}
+}
+
 @media (max-width: 640px) {
 	.hero .container {
 		padding-block: var(--space-4);
