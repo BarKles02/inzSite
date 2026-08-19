@@ -1,0 +1,28 @@
+---
+const items = [
+	"Lampa sufitowa — druk 3D",
+	"Prototyp obudowy CAD",
+	"Oświetlenie na zamówienie",
+	"Element techniczny — seria",
+	"Projekt produktowy",
+	"Realizacja indywidualna",
+];
+---
+
+<section class="section portfolio-section" id="realizacje">
+	<div class="container">
+		<div class="section-header">
+			<span class="eyebrow">Realizacje</span>
+			<h2>Wybrane projekty</h2>
+			<p>Sekcja w budowie — wkrótce zdjęcia z zakończonych realizacji.</p>
+		</div>
+
+		<div class="portfolio-grid">
+			{items.map((item) => (
+				<div class="portfolio-item">
+					<span>{item}</span>
+				</div>
+			))}
+		</div>
+	</div>
+</section>
