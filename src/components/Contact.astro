@@ -26,7 +26,7 @@
 						<path d="M4 4h16v16H4z"/><path d="m4 6 8 7 8-7"/>
 					</svg>
 					<div>
-						<a href="mailto:kontakt@inz-kacperpachut.pl">kontakt@inz-kacperpachut.pl</a>
+						<a href="mailto:kontakt@inz-pachut.pl">kontakt@inz-pachut.pl</a>
 						<p>Odpowiadamy zwykle w ciągu 1–2 dni roboczych</p>
 					</div>
 				</div>
@@ -36,13 +36,23 @@
 						<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>
 					</svg>
 					<div>
-						<address>Suwałki (dokładny adres do uzupełnienia)</address>
+						<address>ul. Waryńskiego 5, 16-400 Suwałki</address>
 						<p>Realizacje na terenie całego kraju</p>
 					</div>
 				</div>
 			</div>
 
-			<form class="contact-form" aria-label="Formularz kontaktowy">
+			<form
+				class="contact-form"
+				aria-label="Formularz kontaktowy"
+				action="https://formsubmit.co/kontakt@inz-pachut.pl"
+				method="POST"
+			>
+				<input type="hidden" name="_subject" value="Nowe zapytanie ze strony INZ Kacper Pachut" />
+				<input type="hidden" name="_template" value="table" />
+				<input type="hidden" name="_next" value="https://barkles02.github.io/inzSite/#kontakt" />
+				<input type="text" name="_honey" style="display:none" tabindex="-1" autocomplete="off" />
+
 				<div class="form-field">
 					<label for="name">Imię i nazwisko</label>
 					<input type="text" id="name" name="name" autocomplete="name" required />

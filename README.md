@@ -48,6 +48,16 @@ Strona dostępna pod `http://localhost:4321`.
 | `npm run build`      | Buduje wersję produkcyjną do `./dist/`        |
 | `npm run preview`    | Podgląd builda produkcyjnego                  |
 
+## Wdrożenie (GitHub Pages)
+
+Strona jest publikowana automatycznie pod
+[barkles02.github.io/inzSite](https://barkles02.github.io/inzSite/) przez
+GitHub Actions ([.github/workflows/deploy.yml](.github/workflows/deploy.yml))
+przy każdym pushu na branch `master`. Konfiguracja `site`/`base` w
+[astro.config.mjs](astro.config.mjs) jest dopasowana do ścieżki tego
+repozytorium (`/inzSite`) — w razie zmiany nazwy repo lub przeniesienia na
+własną domenę trzeba te wartości zaktualizować.
+
 ## Paleta kolorów
 
 Zdefiniowana w [src/styles/variables.css](src/styles/variables.css):
@@ -75,19 +85,24 @@ Pozostałe warianty (navy, white, stacked, lockup, dark-bg) są zapisane w
 `src/assets/logo/`, gotowe do wykorzystania przy rozbudowie strony (np.
 social media, materiały drukowane, podstrony).
 
-## Dane kontaktowe — do uzupełnienia
+## Dane kontaktowe
 
-Lokalizacja firmy to Suwałki (potwierdzone przez tagline w plikach logo).
-Sekcja kontaktowa ([src/components/Contact.astro](src/components/Contact.astro))
-i stopka nadal zawierają placeholdery dla telefonu, e-maila i dokładnego adresu —
-do podmiany na prawdziwe dane firmy przed publikacją.
+- E-mail: `kontakt@inz-pachut.pl`
+- Adres: ul. Waryńskiego 5, 16-400 Suwałki
+- Telefon: nadal placeholder (`+48 000 000 000`) w
+  [src/components/Contact.astro](src/components/Contact.astro) — do podmiany,
+  gdy będzie znany.
 
 ## Formularz kontaktowy
 
-Formularz w sekcji Kontakt nie wysyła jeszcze danych — strona jest statyczna i
-nie ma własnego backendu. Przed wdrożeniem należy podpiąć obsługę (np.
-Formspree, Netlify Forms albo własny endpoint) w atrybucie `action` formularza
-w `Contact.astro`.
+Formularz w sekcji Kontakt wysyła zgłoszenia przez
+[FormSubmit](https://formsubmit.co) (`action="https://formsubmit.co/kontakt@inz-pachut.pl"`)
+— bez własnego backendu, e-maile trafiają bezpośrednio na skrzynkę kontaktową.
+
+**Ważne — jednorazowa aktywacja:** pierwsze wysłanie formularza z tej strony
+spowoduje, że FormSubmit wyśle e-mail aktywacyjny na `kontakt@inz-pachut.pl` z
+prośbą o potwierdzenie — dopiero po kliknięciu w link aktywacyjny kolejne
+zgłoszenia będą przechodzić automatycznie.
 
 ## Realizacje / Portfolio
 
