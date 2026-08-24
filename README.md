@@ -88,10 +88,8 @@ social media, materiały drukowane, podstrony).
 ## Dane kontaktowe
 
 - E-mail: `kontakt@inz-pachut.pl`
+- Telefon: `+48 690 154 554`
 - Adres: ul. Waryńskiego 5, 16-400 Suwałki
-- Telefon: nadal placeholder (`+48 000 000 000`) w
-  [src/components/Contact.astro](src/components/Contact.astro) — do podmiany,
-  gdy będzie znany.
 
 ## Formularz kontaktowy
 
