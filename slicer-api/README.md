@@ -20,8 +20,16 @@ pliku `.stl` i podglądu wyniku.
 
 ## Co klient może wybrać
 
-- **Ilość sztuk** — cena za sztukę (z zastosowaną ceną minimalną) mnożona
-  przez ilość
+- **Ilość sztuk** — program **naprawdę rozmieszcza tyle sztuk na płycie
+  drukarki** (auto-arrange, `--load-assemble-list`) i liczy realny czas/
+  materiał dla całej partii naraz — to nie jest naiwne pomnożenie wyniku
+  jednej sztuki. Sprawdzone empirycznie: 4 sztuki naraz wyszły taniej per
+  sztuka niż 1 sztuka osobno (mniej nagrzewań/dojazdów).
+  Jeśli podana ilość **fizycznie nie mieści się na jednej płycie**, program
+  to wykrywa (OrcaSlicer kończy się błędem zamiast nakładać elementy na
+  siebie) i przełącza się na naiwne pomnożenie wyniku dla 1 sztuki — taka
+  wycena jest oznaczona w odpowiedzi jako `mieszczySieNaJednejPlycie: false`
+  z ostrzeżeniem, że trzeba ustalić harmonogram kilku wydruków.
 - **Materiał** (PLA / PETG / ABS / TPU) — każdy ma swój profil filamentu,
   gęstość i cenę za gram
 - **Kolor** — czysto informacyjne, nie wpływa na slicing ani cenę

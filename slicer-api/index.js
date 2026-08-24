@@ -65,6 +65,44 @@ function runOrcaSlicer(stlPath, outDir, filamentPath, infillPercent) {
 	});
 }
 
+// Próbuje rozmieścić `quantity` sztuk modelu NAPRAWDĘ na jednej płycie (auto-arrange)
+// i policzyć realny czas/materiał dla całej partii naraz. Zwraca { ok: false }
+// jeśli fizycznie się nie mieszczą (OrcaSlicer kończy się błędem, nic nie nadpisuje).
+async function runBatchArrange(stlPath, outDir, filamentPath, infillPercent, quantity) {
+	const assembleListPath = path.join(outDir, "assemble.json");
+	const assembleList = {
+		plates: [
+			{
+				plate_index: 1,
+				plate_name: "plate_1",
+				need_arrange: true,
+				objects: [
+					{
+						path: stlPath.replace(/\\/g, "/"),
+						count: quantity,
+						filaments: [1],
+					},
+				],
+			},
+		],
+	};
+	await fs.writeFile(assembleListPath, JSON.stringify(assembleList));
+
+	const cmd =
+		`"${orcaSlicerPath}" --slice 1 ` +
+		`--load-settings "${profile.machine};${profile.process}" ` +
+		`--load-filaments "${filamentPath}" ` +
+		`--sparse-infill-density ${infillPercent} ` +
+		`--load-assemble-list "${assembleListPath}" ` +
+		`--outputdir "${outDir}"`;
+
+	return new Promise((resolve) => {
+		exec(cmd, { timeout: 180_000 }, (error) => {
+			resolve({ ok: !error });
+		});
+	});
+}
+
 function parseGcodeSummary(gcodeText) {
 	const timeMatch = gcodeText.match(/total estimated time:\s*([^\n;]+)/i);
 	const volumeMatch = gcodeText.match(/filament used \[cm3\]\s*=\s*([\d.]+)/i);
@@ -87,20 +125,22 @@ function parseGcodeSummary(gcodeText) {
 	return { timeText, totalHours, volumeCm3 };
 }
 
-function computePrice({ totalHours, volumeCm3 }, material, quantity) {
-	const grams = volumeCm3 * material.densityGPerCm3;
+// summary = łączne totalHours/volumeCm3 dla CAŁEGO zlecenia (nie za sztukę) —
+// albo z realnego rozmieszczenia na płycie, albo z naiwnego pomnożenia (fallback).
+function computePrice(summary, material, quantity) {
+	const grams = summary.volumeCm3 * material.densityGPerCm3;
 	const materialCost = grams * material.pricePerGramPLN;
-	const timeCost = totalHours * pricing.pricePerHourPLN;
+	const timeCost = summary.totalHours * pricing.pricePerHourPLN;
 	const calculated = materialCost + timeCost;
-	const perUnitPrice = Math.max(pricing.minPricePLN, calculated);
+	const totalPrice = Math.max(pricing.minPricePLN, calculated);
 
 	return {
 		zuzycieFilamentuG: Math.round(grams * 10) / 10,
 		materialCost: Math.round(materialCost * 100) / 100,
 		timeCost: Math.round(timeCost * 100) / 100,
 		usedMinimum: calculated < pricing.minPricePLN,
-		cenaZaSztuke: Math.round(perUnitPrice * 100) / 100,
-		cenaLaczna: Math.round(perUnitPrice * quantity * 100) / 100,
+		cenaLaczna: Math.round(totalPrice * 100) / 100,
+		cenaZaSztuke: Math.round((totalPrice / quantity) * 100) / 100,
 	};
 }
 
@@ -142,12 +182,33 @@ app.post("/api/wycena", upload.single("model"), async (req, res) => {
 
 	try {
 		await fs.mkdir(outDir, { recursive: true });
-		await runOrcaSlicer(stlPath, outDir, material.filament, infill);
 
-		const gcodePath = path.join(outDir, "plate_1.gcode");
-		const gcodeText = await fs.readFile(gcodePath, "utf8");
+		let summary;
+		let mieszczySieNaJednejPlycie;
 
-		const summary = parseGcodeSummary(gcodeText);
+		const batch = await runBatchArrange(stlPath, outDir, material.filament, infill, quantity);
+
+		if (batch.ok) {
+			const gcodeText = await fs.readFile(path.join(outDir, "plate_1.gcode"), "utf8");
+			summary = parseGcodeSummary(gcodeText);
+			mieszczySieNaJednejPlycie = true;
+		} else {
+			// Nie mieści się na jednej płycie — trzeba by kilku wydruków.
+			// Fallback: tniemy 1 sztukę i mnożymy naiwnie — wynik oznaczony jako orientacyjny.
+			await fs.rm(outDir, { recursive: true, force: true });
+			await fs.mkdir(outDir, { recursive: true });
+			await runOrcaSlicer(stlPath, outDir, material.filament, infill);
+
+			const gcodeText = await fs.readFile(path.join(outDir, "plate_1.gcode"), "utf8");
+			const single = parseGcodeSummary(gcodeText);
+			summary = {
+				timeText: `${single.timeText} × ${quantity} szt. (orientacyjnie)`,
+				totalHours: single.totalHours * quantity,
+				volumeCm3: single.volumeCm3 * quantity,
+			};
+			mieszczySieNaJednejPlycie = false;
+		}
+
 		const priceBreakdown = computePrice(summary, material, quantity);
 
 		res.json({
@@ -156,7 +217,11 @@ app.post("/api/wycena", upload.single("model"), async (req, res) => {
 			kolor: color,
 			wypelnienieProc: infill,
 			ilosc: quantity,
-			czasDrukuZaSztuke: summary.timeText,
+			mieszczySieNaJednejPlycie,
+			uwaga: mieszczySieNaJednejPlycie
+				? null
+				: "Ta ilość nie mieści się na jednej płycie drukarki — wymaga kilku osobnych wydruków. Cena jest orientacyjna (naiwne pomnożenie), skontaktuj się w sprawie dokładnego harmonogramu.",
+			czasDruku: summary.timeText,
 			...priceBreakdown,
 		});
 	} catch (err) {

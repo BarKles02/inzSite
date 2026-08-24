@@ -20,8 +20,10 @@ pnpm-debug.log*
 # macOS-specific files
 .DS_Store
 
-# slicer-api runtime log
+# slicer-api runtime log + stray OrcaSlicer CLI logs
 slicer-api/server.log
+slicer-api/*.log
+/*.log
 
 # jetbrains setting folder
 .idea/
