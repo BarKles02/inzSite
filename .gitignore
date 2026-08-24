@@ -20,5 +20,8 @@ pnpm-debug.log*
 # macOS-specific files
 .DS_Store
 
+# slicer-api runtime log
+slicer-api/server.log
+
 # jetbrains setting folder
 .idea/

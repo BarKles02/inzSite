@@ -1,0 +1,14 @@
+{
+  "name": "slicer-api",
+  "type": "module",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Lokalne API do automatycznej wyceny druku 3D na podstawie pliku STL (OrcaSlicer CLI).",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "multer": "^2.0.1"
+  }
+}

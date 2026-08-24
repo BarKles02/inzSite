@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8" />
+<title>Test wyceny druku 3D</title>
+<style>
+	body { font-family: system-ui, sans-serif; max-width: 480px; margin: 3rem auto; padding: 0 1rem; }
+	h1 { font-size: 1.3rem; }
+	input[type="file"] { margin: 1rem 0; }
+	button { padding: 0.6rem 1.2rem; font-size: 1rem; cursor: pointer; }
+	pre { background: #f0f0f0; padding: 1rem; border-radius: 6px; white-space: pre-wrap; }
+	.error { color: #c0392b; }
+</style>
+</head>
+<body>
+	<h1>Test lokalnej wyceny druku 3D</h1>
+	<p>Wgraj plik .stl, żeby zobaczyć wyliczoną cenę (na razie testowy profil drukarki).</p>
+
+	<form id="form">
+		<input type="file" name="model" accept=".stl" required />
+		<br />
+		<button type="submit">Policz wycenę</button>
+	</form>
+
+	<p id="status"></p>
+	<pre id="result" hidden></pre>
+
+	<script>
+		const form = document.getElementById("form");
+		const statusEl = document.getElementById("status");
+		const resultEl = document.getElementById("result");
+
+		form.addEventListener("submit", async (e) => {
+			e.preventDefault();
+			resultEl.hidden = true;
+			statusEl.textContent = "Slicuję... (może potrwać do minuty)";
+			statusEl.className = "";
+
+			const formData = new FormData(form);
+			try {
+				const res = await fetch("/api/wycena", { method: "POST", body: formData });
+				const data = await res.json();
+
+				if (!res.ok) {
+					throw new Error(data.error || "Nieznany błąd");
+				}
+
+				statusEl.textContent = "Gotowe.";
+				resultEl.hidden = false;
+				resultEl.textContent = JSON.stringify(data, null, 2);
+			} catch (err) {
+				statusEl.textContent = "Błąd: " + err.message;
+				statusEl.className = "error";
+			}
+		});
+	</script>
+</body>
+</html>
