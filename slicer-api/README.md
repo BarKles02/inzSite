@@ -18,37 +18,52 @@ npm start
 Otwórz `http://localhost:3001` w przeglądarce — prosty formularz do wgrania
 pliku `.stl` i podglądu wyniku.
 
+## Co klient może wybrać
+
+- **Ilość sztuk** — cena za sztukę (z zastosowaną ceną minimalną) mnożona
+  przez ilość
+- **Materiał** (PLA / PETG / ABS / TPU) — każdy ma swój profil filamentu,
+  gęstość i cenę za gram
+- **Kolor** — czysto informacyjne, nie wpływa na slicing ani cenę
+- **Wypełnienie (%)** — realnie zmienia wynik slicowania (nadpisywane przez
+  `--sparse-infill-density`, sprawdzone empirycznie: 10% vs 90% wypełnienia
+  dało 13.94 cm³ / 2h19m vs 56.53 cm³ / 8h19m na tym samym modelu)
+
 ## Konfiguracja
 
 Wszystko do zmiany jest w [config.js](config.js):
 
-- `pricing` — cena minimalna, cena za godzinę pracy drukarki, cena za gram
-  filamentu
-- `filamentDensityGPerCm3` — gęstość materiału (do przeliczenia objętości z
-  G-code na gramy)
-- `profile` — ścieżki do plików ustawień drukarki/procesu/filamentu
+- `pricing` — cena minimalna, cena za godzinę pracy drukarki
+- `materials` — mapa materiałów: profil filamentu, gęstość, cena za gram dla
+  każdego
+- `colors` — lista kolorów do wyboru (informacyjne)
+- `infillRange`, `quantityRange` — dopuszczalne zakresy do walidacji
+- `profile` — ścieżki do wspólnych plików ustawień drukarki/procesu
 
 ## Profil drukarki — obecnie testowy
 
-`profile` w `config.js` wskazuje teraz na **wbudowany w OrcaSlicer profil
-testowy** (Bambu Lab A1 + PLA Basic, ustawienia standardowe 0.2mm) — nie na
-Twoją prawdziwą, skalibrowaną drukarkę. Wyceny będą orientacyjne, dopóki się
-to nie podmieni.
+`profile` i `materials` w `config.js` wskazują teraz na **wbudowane w
+OrcaSlicer profile testowe** (Bambu Lab A1, ustawienia standardowe 0.2mm,
+generyczne filamenty) — nie na Twoją prawdziwą, skalibrowaną drukarkę.
+Wyceny będą orientacyjne, dopóki się to nie podmieni.
 
 **Żeby podpiąć swój prawdziwy profil:**
-1. Otwórz OrcaSlicer, wybierz drukarkę/filament/proces, których faktycznie
-   używasz do druku
+1. Otwórz OrcaSlicer, wybierz drukarkę/proces, których faktycznie używasz
 2. W menu **File → Export → Export Configs** wyeksportuj ustawienia do pliku
-3. Podmień ścieżki w `profile` (w `config.js`) na wyeksportowane pliki
+3. Podmień ścieżki w `profile.machine` / `profile.process` (w `config.js`)
+   na wyeksportowane pliki
+4. Zrób to samo dla każdego materiału, którego faktycznie używasz, i podmień
+   ścieżkę `filament` w odpowiednim wpisie w `materials`
 
 ## Jak to działa pod maską
 
 1. Zapisuje wgrany STL do folderu tymczasowego
-2. Odpala `orca-slicer.exe --slice 1 --load-settings ... --load-filaments ... --outputdir ...`
+2. Odpala `orca-slicer.exe --slice 1 --load-settings "maszyna;proces" --load-filaments "filament dla wybranego materiału" --sparse-infill-density <%> --outputdir ...`
 3. Czyta wynikowy `plate_1.gcode`, wyciąga z nagłówka:
    - `total estimated time: ...`
    - `filament used [cm3] = ...`
-4. Liczy cenę: `max(cena_minimalna, gramy × cena_za_gram + godziny × cena_za_h)`
+4. Liczy cenę za sztukę: `max(cena_minimalna, gramy × cena_za_gram_dla_materiału + godziny × cena_za_h)`,
+   potem mnoży przez ilość sztuk
 5. Usuwa pliki tymczasowe i zwraca wynik jako JSON
 
 ## Co dalej

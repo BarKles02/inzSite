@@ -6,7 +6,15 @@ import path from "node:path";
 import os from "node:os";
 import { fileURLToPath } from "node:url";
 
-import { pricing, filamentDensityGPerCm3, orcaSlicerPath, profile } from "./config.js";
+import {
+	pricing,
+	profile,
+	materials,
+	colors,
+	infillRange,
+	quantityRange,
+	orcaSlicerPath,
+} from "./config.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PORT = 3001;
@@ -32,11 +40,18 @@ const upload = multer({
 	},
 });
 
-function runOrcaSlicer(stlPath, outDir) {
+function clamp(value, min, max, fallback) {
+	const n = Number(value);
+	if (!Number.isFinite(n)) return fallback;
+	return Math.min(max, Math.max(min, n));
+}
+
+function runOrcaSlicer(stlPath, outDir, filamentPath, infillPercent) {
 	const cmd =
 		`"${orcaSlicerPath}" --slice 1 ` +
 		`--load-settings "${profile.machine};${profile.process}" ` +
-		`--load-filaments "${profile.filament}" ` +
+		`--load-filaments "${filamentPath}" ` +
+		`--sparse-infill-density ${infillPercent} ` +
 		`--outputdir "${outDir}" "${stlPath}"`;
 
 	return new Promise((resolve, reject) => {
@@ -68,31 +83,44 @@ function parseGcodeSummary(gcodeText) {
 		(sMatch ? Number(sMatch[1]) : 0) / 3600;
 
 	const volumeCm3 = Number(volumeMatch[1]);
-	const grams = volumeCm3 * filamentDensityGPerCm3;
 
-	return { timeText, totalHours, grams };
+	return { timeText, totalHours, volumeCm3 };
 }
 
-function computePrice({ totalHours, grams }) {
-	const materialCost = grams * pricing.pricePerGramPLN;
+function computePrice({ totalHours, volumeCm3 }, material, quantity) {
+	const grams = volumeCm3 * material.densityGPerCm3;
+	const materialCost = grams * material.pricePerGramPLN;
 	const timeCost = totalHours * pricing.pricePerHourPLN;
 	const calculated = materialCost + timeCost;
-	const price = Math.max(pricing.minPricePLN, calculated);
+	const perUnitPrice = Math.max(pricing.minPricePLN, calculated);
 
 	return {
-		price: Math.round(price * 100) / 100,
+		zuzycieFilamentuG: Math.round(grams * 10) / 10,
 		materialCost: Math.round(materialCost * 100) / 100,
 		timeCost: Math.round(timeCost * 100) / 100,
 		usedMinimum: calculated < pricing.minPricePLN,
+		cenaZaSztuke: Math.round(perUnitPrice * 100) / 100,
+		cenaLaczna: Math.round(perUnitPrice * quantity * 100) / 100,
 	};
 }
 
-await fs.mkdir(uploadsDir, { recursive: true });
-
 const app = express();
+
+await fs.mkdir(uploadsDir, { recursive: true });
 
 app.get("/", (req, res) => {
 	res.sendFile(path.join(__dirname, "test.html"));
+});
+
+app.get("/api/opcje", (req, res) => {
+	res.json({
+		materialy: Object.fromEntries(
+			Object.entries(materials).map(([key, m]) => [key, m.label])
+		),
+		kolory: colors,
+		wypelnienie: infillRange,
+		ilosc: quantityRange,
+	});
 });
 
 app.post("/api/wycena", upload.single("model"), async (req, res) => {
@@ -101,23 +129,34 @@ app.post("/api/wycena", upload.single("model"), async (req, res) => {
 		return;
 	}
 
+	const materialKey = req.body.material && materials[req.body.material] ? req.body.material : "PLA";
+	const material = materials[materialKey];
+	const color = typeof req.body.color === "string" && req.body.color.trim() ? req.body.color.trim() : colors[0];
+	const infill = clamp(req.body.infill, infillRange.min, infillRange.max, infillRange.default);
+	const quantity = Math.round(
+		clamp(req.body.quantity, quantityRange.min, quantityRange.max, quantityRange.default)
+	);
+
 	const stlPath = req.file.path;
 	const outDir = path.join(os.tmpdir(), `slicer-api-out-${Date.now()}`);
 
 	try {
 		await fs.mkdir(outDir, { recursive: true });
-		await runOrcaSlicer(stlPath, outDir);
+		await runOrcaSlicer(stlPath, outDir, material.filament, infill);
 
 		const gcodePath = path.join(outDir, "plate_1.gcode");
 		const gcodeText = await fs.readFile(gcodePath, "utf8");
 
 		const summary = parseGcodeSummary(gcodeText);
-		const priceBreakdown = computePrice(summary);
+		const priceBreakdown = computePrice(summary, material, quantity);
 
 		res.json({
 			plik: req.file.originalname,
-			czasDruku: summary.timeText,
-			zuzycieFilamentuG: Math.round(summary.grams * 10) / 10,
+			material: material.label,
+			kolor: color,
+			wypelnienieProc: infill,
+			ilosc: quantity,
+			czasDrukuZaSztuke: summary.timeText,
 			...priceBreakdown,
 		});
 	} catch (err) {
