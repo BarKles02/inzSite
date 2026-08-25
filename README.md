@@ -48,15 +48,31 @@ Strona dostępna pod `http://localhost:4321`.
 | `npm run build`      | Buduje wersję produkcyjną do `./dist/`        |
 | `npm run preview`    | Podgląd builda produkcyjnego                  |
 
-## Wdrożenie (GitHub Pages)
+## Wdrożenie (GitHub Pages + własna domena)
 
-Strona jest publikowana automatycznie pod
-[barkles02.github.io/inzSite](https://barkles02.github.io/inzSite/) przez
-GitHub Actions ([.github/workflows/deploy.yml](.github/workflows/deploy.yml))
-przy każdym pushu na branch `master`. Konfiguracja `site`/`base` w
-[astro.config.mjs](astro.config.mjs) jest dopasowana do ścieżki tego
-repozytorium (`/inzSite`) — w razie zmiany nazwy repo lub przeniesienia na
-własną domenę trzeba te wartości zaktualizować.
+Strona jest budowana i publikowana automatycznie przez GitHub Actions
+([.github/workflows/deploy.yml](.github/workflows/deploy.yml)) przy każdym
+pushu na branch `master`, hostowana na GitHub Pages, ale docelowo dostępna
+pod własną domeną **inz-pachut.pl** (kupioną na home.pl) — zarówno bez `www`,
+jak i z `www.inz-pachut.pl`.
+
+Jak to jest spięte:
+
+- [public/CNAME](public/CNAME) zawiera `inz-pachut.pl` — GitHub Pages czyta
+  ten plik z każdego builda, żeby wiedzieć pod jaką domeną ma się serwować
+- `site` w [astro.config.mjs](astro.config.mjs) ustawione na
+  `https://inz-pachut.pl`, bez `base` (strona jest w katalogu głównym domeny,
+  nie w podścieżce jak wcześniej przy `barkles02.github.io/inzSite`)
+- W panelu DNS na home.pl trzeba ustawić (raz, ręcznie — poza tym repo):
+  - **4 rekordy A** dla `inz-pachut.pl` (root/apex) wskazujące na adresy IP
+    GitHub Pages: `185.199.108.153`, `185.199.109.153`, `185.199.110.153`,
+    `185.199.111.153`
+  - **1 rekord CNAME** dla `www` wskazujący na `barkles02.github.io`
+  - **Nie ruszać rekordów MX** (obsługa poczty `kontakt@inz-pachut.pl`) — to
+    osobna sprawa od kierowania ruchu WWW
+- W ustawieniach repo (Settings → Pages) trzeba wpisać `inz-pachut.pl` jako
+  Custom domain i poczekać, aż GitHub sam wystawi certyfikat HTTPS (może to
+  potrwać od kilku minut do kilkudziesięciu godzin po zmianie DNS)
 
 ## Paleta kolorów
 
