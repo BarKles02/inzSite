@@ -46,73 +46,31 @@ function clamp(value, min, max, fallback) {
 	return Math.min(max, Math.max(min, n));
 }
 
-// Próbuje rozmieścić `quantity` sztuk modelu NAPRAWDĘ na jednej płycie (auto-arrange)
-// i policzyć realny czas/materiał dla całej partii naraz. Zwraca { ok: false }
-// jeśli fizycznie się nie mieszczą (OrcaSlicer kończy się błędem, nic nie nadpisuje).
-async function runBatchArrange(stlPath, outDir, filamentPath, infillPercent, quantity) {
-	const assembleListPath = path.join(outDir, "assemble.json");
-	const assembleList = {
-		plates: [
-			{
-				plate_index: 1,
-				plate_name: "plate_1",
-				need_arrange: true,
-				objects: [
-					{
-						path: stlPath.replace(/\\/g, "/"),
-						count: quantity,
-						filaments: [1],
-					},
-				],
-			},
-		],
-	};
-	await fs.writeFile(assembleListPath, JSON.stringify(assembleList));
-
+// MVP: tniemy zawsze dokładnie 1 sztukę, prostym `--slice` (bez
+// `--load-assemble-list`). Ten mechanizm jest sprawdzony jako niezawodny
+// (działa na realnych, złożonych plikach STL, ~7s na modelu z 68 tys.
+// trójkątów). Wcześniejsza wersja próbowała realnie rozmieszczać N sztuk na
+// płycie przez `--load-assemble-list`, ale ta funkcja OrcaSlicera potrafi się
+// wywalić z access violation (0xC0000005) na złożonych, prawdziwych plikach
+// — niezależnie od auto-arrange. Do rozważenia później: policzyć pojemność
+// płyty samemu (z bounding boxa modelu), zamiast polegać na tej funkcji.
+function runSingleSlice(stlPath, outDir, filamentPath, infillPercent) {
 	const cmd =
 		`"${orcaSlicerPath}" --slice 1 ` +
 		`--load-settings "${profile.machine};${profile.process}" ` +
 		`--load-filaments "${filamentPath}" ` +
 		`--sparse-infill-density ${infillPercent} ` +
-		`--load-assemble-list "${assembleListPath}" ` +
-		`--outputdir "${outDir}"`;
+		`--outputdir "${outDir}" "${stlPath}"`;
 
-	return new Promise((resolve) => {
-		exec(cmd, { timeout: 180_000 }, (error) => {
-			resolve({ ok: !error });
+	return new Promise((resolve, reject) => {
+		exec(cmd, { timeout: 120_000 }, (error, stdout, stderr) => {
+			if (error) {
+				reject(new Error(`Slicing nie powiodło się: ${stderr || stdout || error.message}`));
+				return;
+			}
+			resolve();
 		});
 	});
-}
-
-// Wyszukiwanie binarne: znajduje maksymalną liczbę sztuk, jaka realnie
-// mieści się razem na jednej płycie (auto-arrange), i zwraca czas/materiał
-// dla tej pełnej płyty. Szuka w zakresie [1, upperBound].
-async function findPlateCapacity(stlPath, baseOutDir, filamentPath, infillPercent, upperBound) {
-	let low = 1;
-	let high = upperBound;
-	let bestCount = 0;
-	let bestSummary = null;
-
-	while (low <= high) {
-		const mid = Math.floor((low + high) / 2);
-		const probeDir = path.join(baseOutDir, `probe-${mid}`);
-		await fs.mkdir(probeDir, { recursive: true });
-
-		const result = await runBatchArrange(stlPath, probeDir, filamentPath, infillPercent, mid);
-
-		if (result.ok) {
-			const gcodeText = await fs.readFile(path.join(probeDir, "plate_1.gcode"), "utf8");
-			bestCount = mid;
-			bestSummary = parseGcodeSummary(gcodeText);
-			low = mid + 1;
-		} else {
-			high = mid - 1;
-		}
-
-		await fs.rm(probeDir, { recursive: true, force: true });
-	}
-
-	return { maxPerPlate: bestCount, plateSummary: bestSummary };
 }
 
 function parseGcodeSummary(gcodeText) {
@@ -139,22 +97,23 @@ function parseGcodeSummary(gcodeText) {
 	return { timeText, totalHours, volumeCm3 };
 }
 
-// summary = łączne totalHours/volumeCm3 dla CAŁEGO zlecenia (nie za sztukę) —
-// albo z realnego rozmieszczenia na płycie, albo z naiwnego pomnożenia (fallback).
-function computePrice(summary, material, quantity) {
-	const grams = summary.volumeCm3 * material.densityGPerCm3;
-	const materialCost = grams * material.pricePerGramPLN;
-	const timeCost = summary.totalHours * pricing.pricePerHourPLN;
-	const calculated = materialCost + timeCost;
-	const totalPrice = Math.max(pricing.minPricePLN, calculated);
+// single = wynik dla JEDNEJ sztuki. Mnoży naiwnie razy ilość (przy quantity>1
+// to orientacyjne — nie uwzględnia że drukowanie kilku sztuk razem bywa
+// szybsze niż suma pojedynczych wydruków, patrz komentarz nad runSingleSlice).
+function computePrice(single, material, quantity) {
+	const gramsPerUnit = single.volumeCm3 * material.densityGPerCm3;
+	const materialCostPerUnit = gramsPerUnit * material.pricePerGramPLN;
+	const timeCostPerUnit = single.totalHours * pricing.pricePerHourPLN;
+	const calculatedPerUnit = materialCostPerUnit + timeCostPerUnit;
+	const pricePerUnit = Math.max(pricing.minPricePLN, calculatedPerUnit);
 
 	return {
-		zuzycieFilamentuG: Math.round(grams * 10) / 10,
-		materialCost: Math.round(materialCost * 100) / 100,
-		timeCost: Math.round(timeCost * 100) / 100,
-		usedMinimum: calculated < pricing.minPricePLN,
-		cenaLaczna: Math.round(totalPrice * 100) / 100,
-		cenaZaSztuke: Math.round((totalPrice / quantity) * 100) / 100,
+		zuzycieFilamentuG: Math.round(gramsPerUnit * quantity * 10) / 10,
+		materialCost: Math.round(materialCostPerUnit * quantity * 100) / 100,
+		timeCost: Math.round(timeCostPerUnit * quantity * 100) / 100,
+		usedMinimum: calculatedPerUnit < pricing.minPricePLN,
+		cenaZaSztuke: Math.round(pricePerUnit * 100) / 100,
+		cenaLaczna: Math.round(pricePerUnit * quantity * 100) / 100,
 	};
 }
 
@@ -196,74 +155,11 @@ app.post("/api/wycena", upload.single("model"), async (req, res) => {
 
 	try {
 		await fs.mkdir(outDir, { recursive: true });
+		await runSingleSlice(stlPath, outDir, material.filament, infill);
 
-		let summary;
-		let mieszczySieNaJednejPlycie;
-		let liczbaWydrukow = 1;
-
-		// TYMCZASOWO (do testów): zawsze szukamy realnej pojemności płyty,
-		// nawet gdy zamówienie i tak się mieści — żeby było widać w odpowiedzi
-		// ile faktycznie wchodzi. To dodatkowo spowalnia każdą wycenę (kilka
-		// próbnych cięć); do wersji produkcyjnej warto to robić tylko wtedy,
-		// gdy zamówienie się nie mieści.
-		const { maxPerPlate, plateSummary } = await findPlateCapacity(
-			stlPath,
-			outDir,
-			material.filament,
-			infill,
-			quantityRange.max
-		);
-
-		if (maxPerPlate === 0) {
-			throw new Error("Ten model jest za duży, żeby zmieścić się na płycie drukarki nawet pojedynczo.");
-		}
-
-		const sztukNaPlyte = maxPerPlate;
-
-		if (quantity <= maxPerPlate) {
-			mieszczySieNaJednejPlycie = true;
-
-			if (quantity === maxPerPlate) {
-				// Już wiemy — to dokładnie ten wynik, który znalazło wyszukiwanie.
-				summary = plateSummary;
-			} else {
-				// Wynik wyszukiwania nie dotyczy dokładnie `quantity`, więc tniemy precyzyjnie.
-				const preciseDir = path.join(outDir, "precise");
-				await fs.mkdir(preciseDir, { recursive: true });
-				await runBatchArrange(stlPath, preciseDir, material.filament, infill, quantity);
-				const preciseGcode = await fs.readFile(path.join(preciseDir, "plate_1.gcode"), "utf8");
-				summary = parseGcodeSummary(preciseGcode);
-			}
-		} else {
-			// Nie mieści się na jednej płycie — liczymy, ile osobnych wydruków to wymaga.
-			mieszczySieNaJednejPlycie = false;
-
-			const fullPlates = Math.floor(quantity / maxPerPlate);
-			const remainder = quantity % maxPerPlate;
-
-			let totalHours = fullPlates * plateSummary.totalHours;
-			let totalVolumeCm3 = fullPlates * plateSummary.volumeCm3;
-			liczbaWydrukow = fullPlates;
-
-			if (remainder > 0) {
-				const remainderDir = path.join(outDir, "remainder");
-				await fs.mkdir(remainderDir, { recursive: true });
-				await runBatchArrange(stlPath, remainderDir, material.filament, infill, remainder);
-				const gcodeText = await fs.readFile(path.join(remainderDir, "plate_1.gcode"), "utf8");
-				const remainderSummary = parseGcodeSummary(gcodeText);
-				totalHours += remainderSummary.totalHours;
-				totalVolumeCm3 += remainderSummary.volumeCm3;
-				liczbaWydrukow += 1;
-			}
-
-			summary = {
-				timeText: `${liczbaWydrukow} wydruki (${fullPlates} × ${maxPerPlate} szt.${remainder > 0 ? ` + 1 × ${remainder} szt.` : ""})`,
-				totalHours,
-				volumeCm3: totalVolumeCm3,
-			};
-		}
-
-		const priceBreakdown = computePrice(summary, material, quantity);
+		const gcodeText = await fs.readFile(path.join(outDir, "plate_1.gcode"), "utf8");
+		const single = parseGcodeSummary(gcodeText);
+		const priceBreakdown = computePrice(single, material, quantity);
 
 		res.json({
 			plik: req.file.originalname,
@@ -271,13 +167,12 @@ app.post("/api/wycena", upload.single("model"), async (req, res) => {
 			kolor: color,
 			wypelnienieProc: infill,
 			ilosc: quantity,
-			mieszczySieNaJednejPlycie,
-			sztukNaPlyte,
-			liczbaWydrukow,
-			uwaga: mieszczySieNaJednejPlycie
-				? null
-				: `Ta ilość nie mieści się na jednej płycie — na płytę wchodzi maksymalnie ${sztukNaPlyte} szt., więc zamówienie wymaga ${liczbaWydrukow} osobnych wydruków. Wycena uwzględnia to realnie (nie jest to naiwne pomnożenie).`,
-			czasDruku: summary.timeText,
+			czasDrukuZaSztuke: single.timeText,
+			orientacyjne: quantity > 1,
+			uwaga:
+				quantity > 1
+					? "Cena za więcej niż 1 sztukę jest orientacyjna (pomnożona wycena jednej sztuki) — nie uwzględnia realnego rozmieszczenia kilku sztuk razem na płycie."
+					: null,
 			...priceBreakdown,
 		});
 	} catch (err) {

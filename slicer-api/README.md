@@ -20,21 +20,12 @@ pliku `.stl` i podglądu wyniku.
 
 ## Co klient może wybrać
 
-- **Ilość sztuk** — program **naprawdę rozmieszcza tyle sztuk na płycie
-  drukarki** (auto-arrange, `--load-assemble-list`) i liczy realny czas/
-  materiał dla całej partii naraz — to nie jest naiwne pomnożenie wyniku
-  jednej sztuki. Sprawdzone empirycznie: 4 sztuki naraz wyszły taniej per
-  sztuka niż 1 sztuka osobno (mniej nagrzewań/dojazdów).
-  Jeśli podana ilość **fizycznie nie mieści się na jednej płycie**, program
-  to wykrywa (OrcaSlicer kończy się błędem zamiast nakładać elementy na
-  siebie) i **szuka wyszukiwaniem binarnym**, ile sztuk faktycznie wchodzi
-  razem na płytę — a potem liczy realny harmonogram (ile pełnych płyt +
-  ewentualna reszta) i sumuje prawdziwy czas/materiał dla całości. Przykład
-  z testów: 50 sztuk 40mm kostki → 16 szt./płytę → 4 wydruki (3×16 + 1×2) →
-  244 zł, zamiast 528 zł przy naiwnym pomnożeniu jednej sztuki × 50 (które
-  ignorowało, że drukarka nie nagrzewa się od zera dla każdej sztuki).
-  Odpowiedź zawiera `sztukNaPlyte`, `liczbaWydrukow` i
-  `mieszczySieNaJednejPlycie: false` z wyjaśnieniem.
+- **Ilość sztuk** — MVP tnie **zawsze dokładnie 1 sztukę** i dla `quantity > 1`
+  mnoży wynik naiwnie (cena, czas, materiał × ilość), oznaczając to wprost w
+  odpowiedzi jako `orientacyjne: true` z komentarzem w `uwaga`. To nie
+  uwzględnia, że drukowanie kilku sztuk razem bywa szybsze niż suma
+  pojedynczych wydruków (mniej nagrzewań/dojazdów) — świadomy kompromis, patrz
+  „Odrzucone podejście” niżej.
 - **Materiał** (PLA / PETG / ABS / TPU) — każdy ma swój profil filamentu,
   gęstość i cenę za gram
 - **Kolor** — czysto informacyjne, nie wpływa na slicing ani cenę
@@ -78,6 +69,23 @@ Wyceny będą orientacyjne, dopóki się to nie podmieni.
 4. Liczy cenę za sztukę: `max(cena_minimalna, gramy × cena_za_gram_dla_materiału + godziny × cena_za_h)`,
    potem mnoży przez ilość sztuk
 5. Usuwa pliki tymczasowe i zwraca wynik jako JSON
+
+## Odrzucone podejście — auto-rozmieszczanie kilku sztuk na płycie
+
+Wcześniejsza wersja próbowała realnie rozmieszczać N sztuk na płycie przez
+`orca-slicer --load-assemble-list ...` (z `need_arrange: true`) i liczyć
+prawdziwy, łączny czas/materiał dla całej partii naraz — działało świetnie na
+prostej testowej kostce (12 trójkątów). **Na prawdziwym pliku klienta (68 814
+trójkątów, breloczek na klucze) ten sam mechanizm kończył się crashem
+programu** (`exit code -1073741819` / `0xC0000005`, access violation) —
+niezależnie od tego, czy `need_arrange` było włączone czy wyłączone. Zwykłe
+`--slice` bez `--load-assemble-list` na tym samym pliku działa bez zarzutu
+(~7s). Wniosek: `--load-assemble-list` w tej wersji OrcaSlicera (2.4.2) jest
+zbyt niestabilny na złożonych, prawdziwych plikach, żeby się na nim opierać —
+dlatego MVP wrócił do prostego mnożenia. Do rozważenia w przyszłości: policzyć
+pojemność płyty samemu na podstawie bounding boxa modelu (da się to wyciągnąć
+bezpośrednio z pliku STL, bez angażowania tej niestabilnej funkcji), zamiast
+polegać na aut-arrange OrcaSlicera.
 
 ## Co dalej
 
