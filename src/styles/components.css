@@ -748,6 +748,11 @@
 	color: rgba(247, 250, 252, 0.85);
 }
 
+.form-field label .optional {
+	font-weight: 400;
+	color: rgba(247, 250, 252, 0.55);
+}
+
 .form-field input,
 .form-field textarea {
 	font-family: inherit;
