@@ -46,25 +46,6 @@ function clamp(value, min, max, fallback) {
 	return Math.min(max, Math.max(min, n));
 }
 
-function runOrcaSlicer(stlPath, outDir, filamentPath, infillPercent) {
-	const cmd =
-		`"${orcaSlicerPath}" --slice 1 ` +
-		`--load-settings "${profile.machine};${profile.process}" ` +
-		`--load-filaments "${filamentPath}" ` +
-		`--sparse-infill-density ${infillPercent} ` +
-		`--outputdir "${outDir}" "${stlPath}"`;
-
-	return new Promise((resolve, reject) => {
-		exec(cmd, { timeout: 120_000 }, (error, stdout, stderr) => {
-			if (error) {
-				reject(new Error(`Slicing nie powiodło się: ${stderr || stdout || error.message}`));
-				return;
-			}
-			resolve();
-		});
-	});
-}
-
 // Próbuje rozmieścić `quantity` sztuk modelu NAPRAWDĘ na jednej płycie (auto-arrange)
 // i policzyć realny czas/materiał dla całej partii naraz. Zwraca { ok: false }
 // jeśli fizycznie się nie mieszczą (OrcaSlicer kończy się błędem, nic nie nadpisuje).
@@ -101,6 +82,37 @@ async function runBatchArrange(stlPath, outDir, filamentPath, infillPercent, qua
 			resolve({ ok: !error });
 		});
 	});
+}
+
+// Wyszukiwanie binarne: znajduje maksymalną liczbę sztuk, jaka realnie
+// mieści się razem na jednej płycie (auto-arrange), i zwraca czas/materiał
+// dla tej pełnej płyty. `quantity` musi już być wiadome, że się NIE mieści.
+async function findPlateCapacity(stlPath, baseOutDir, filamentPath, infillPercent, quantity) {
+	let low = 1;
+	let high = quantity - 1;
+	let bestCount = 0;
+	let bestSummary = null;
+
+	while (low <= high) {
+		const mid = Math.floor((low + high) / 2);
+		const probeDir = path.join(baseOutDir, `probe-${mid}`);
+		await fs.mkdir(probeDir, { recursive: true });
+
+		const result = await runBatchArrange(stlPath, probeDir, filamentPath, infillPercent, mid);
+
+		if (result.ok) {
+			const gcodeText = await fs.readFile(path.join(probeDir, "plate_1.gcode"), "utf8");
+			bestCount = mid;
+			bestSummary = parseGcodeSummary(gcodeText);
+			low = mid + 1;
+		} else {
+			high = mid - 1;
+		}
+
+		await fs.rm(probeDir, { recursive: true, force: true });
+	}
+
+	return { maxPerPlate: bestCount, plateSummary: bestSummary };
 }
 
 function parseGcodeSummary(gcodeText) {
@@ -185,6 +197,8 @@ app.post("/api/wycena", upload.single("model"), async (req, res) => {
 
 		let summary;
 		let mieszczySieNaJednejPlycie;
+		let liczbaWydrukow = 1;
+		let sztukNaPlyte = quantity;
 
 		const batch = await runBatchArrange(stlPath, outDir, material.filament, infill, quantity);
 
@@ -193,20 +207,52 @@ app.post("/api/wycena", upload.single("model"), async (req, res) => {
 			summary = parseGcodeSummary(gcodeText);
 			mieszczySieNaJednejPlycie = true;
 		} else {
-			// Nie mieści się na jednej płycie — trzeba by kilku wydruków.
-			// Fallback: tniemy 1 sztukę i mnożymy naiwnie — wynik oznaczony jako orientacyjny.
-			await fs.rm(outDir, { recursive: true, force: true });
-			await fs.mkdir(outDir, { recursive: true });
-			await runOrcaSlicer(stlPath, outDir, material.filament, infill);
-
-			const gcodeText = await fs.readFile(path.join(outDir, "plate_1.gcode"), "utf8");
-			const single = parseGcodeSummary(gcodeText);
-			summary = {
-				timeText: `${single.timeText} × ${quantity} szt. (orientacyjnie)`,
-				totalHours: single.totalHours * quantity,
-				volumeCm3: single.volumeCm3 * quantity,
-			};
+			// Nie mieści się na jednej płycie — szukamy realnej pojemności (ile sztuk
+			// faktycznie wchodzi razem) i liczymy, ile osobnych wydruków to wymaga.
 			mieszczySieNaJednejPlycie = false;
+
+			const { maxPerPlate, plateSummary } = await findPlateCapacity(
+				stlPath,
+				outDir,
+				material.filament,
+				infill,
+				quantity
+			);
+
+			if (maxPerPlate === 0) {
+				throw new Error("Ten model jest za duży, żeby zmieścić się na płycie drukarki nawet pojedynczo.");
+			}
+
+			sztukNaPlyte = maxPerPlate;
+			const fullPlates = Math.floor(quantity / maxPerPlate);
+			const remainder = quantity % maxPerPlate;
+
+			let totalHours = fullPlates * plateSummary.totalHours;
+			let totalVolumeCm3 = fullPlates * plateSummary.volumeCm3;
+			liczbaWydrukow = fullPlates;
+
+			if (remainder > 0) {
+				const remainderDir = path.join(outDir, "remainder");
+				await fs.mkdir(remainderDir, { recursive: true });
+				const remainderResult = await runBatchArrange(
+					stlPath,
+					remainderDir,
+					material.filament,
+					infill,
+					remainder
+				);
+				const gcodeText = await fs.readFile(path.join(remainderDir, "plate_1.gcode"), "utf8");
+				const remainderSummary = parseGcodeSummary(gcodeText);
+				totalHours += remainderSummary.totalHours;
+				totalVolumeCm3 += remainderSummary.volumeCm3;
+				liczbaWydrukow += 1;
+			}
+
+			summary = {
+				timeText: `${liczbaWydrukow} wydruki (${fullPlates} × ${maxPerPlate} szt.${remainder > 0 ? ` + 1 × ${remainder} szt.` : ""})`,
+				totalHours,
+				volumeCm3: totalVolumeCm3,
+			};
 		}
 
 		const priceBreakdown = computePrice(summary, material, quantity);
@@ -218,9 +264,11 @@ app.post("/api/wycena", upload.single("model"), async (req, res) => {
 			wypelnienieProc: infill,
 			ilosc: quantity,
 			mieszczySieNaJednejPlycie,
+			sztukNaPlyte,
+			liczbaWydrukow,
 			uwaga: mieszczySieNaJednejPlycie
 				? null
-				: "Ta ilość nie mieści się na jednej płycie drukarki — wymaga kilku osobnych wydruków. Cena jest orientacyjna (naiwne pomnożenie), skontaktuj się w sprawie dokładnego harmonogramu.",
+				: `Ta ilość nie mieści się na jednej płycie — na płytę wchodzi maksymalnie ${sztukNaPlyte} szt., więc zamówienie wymaga ${liczbaWydrukow} osobnych wydruków. Wycena uwzględnia to realnie (nie jest to naiwne pomnożenie).`,
 			czasDruku: summary.timeText,
 			...priceBreakdown,
 		});

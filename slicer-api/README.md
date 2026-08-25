@@ -27,9 +27,14 @@ pliku `.stl` i podglądu wyniku.
   sztuka niż 1 sztuka osobno (mniej nagrzewań/dojazdów).
   Jeśli podana ilość **fizycznie nie mieści się na jednej płycie**, program
   to wykrywa (OrcaSlicer kończy się błędem zamiast nakładać elementy na
-  siebie) i przełącza się na naiwne pomnożenie wyniku dla 1 sztuki — taka
-  wycena jest oznaczona w odpowiedzi jako `mieszczySieNaJednejPlycie: false`
-  z ostrzeżeniem, że trzeba ustalić harmonogram kilku wydruków.
+  siebie) i **szuka wyszukiwaniem binarnym**, ile sztuk faktycznie wchodzi
+  razem na płytę — a potem liczy realny harmonogram (ile pełnych płyt +
+  ewentualna reszta) i sumuje prawdziwy czas/materiał dla całości. Przykład
+  z testów: 50 sztuk 40mm kostki → 16 szt./płytę → 4 wydruki (3×16 + 1×2) →
+  244 zł, zamiast 528 zł przy naiwnym pomnożeniu jednej sztuki × 50 (które
+  ignorowało, że drukarka nie nagrzewa się od zera dla każdej sztuki).
+  Odpowiedź zawiera `sztukNaPlyte`, `liczbaWydrukow` i
+  `mieszczySieNaJednejPlycie: false` z wyjaśnieniem.
 - **Materiał** (PLA / PETG / ABS / TPU) — każdy ma swój profil filamentu,
   gęstość i cenę za gram
 - **Kolor** — czysto informacyjne, nie wpływa na slicing ani cenę
