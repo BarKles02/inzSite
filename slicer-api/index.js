@@ -86,10 +86,10 @@ async function runBatchArrange(stlPath, outDir, filamentPath, infillPercent, qua
 
 // Wyszukiwanie binarne: znajduje maksymalną liczbę sztuk, jaka realnie
 // mieści się razem na jednej płycie (auto-arrange), i zwraca czas/materiał
-// dla tej pełnej płyty. `quantity` musi już być wiadome, że się NIE mieści.
-async function findPlateCapacity(stlPath, baseOutDir, filamentPath, infillPercent, quantity) {
+// dla tej pełnej płyty. Szuka w zakresie [1, upperBound].
+async function findPlateCapacity(stlPath, baseOutDir, filamentPath, infillPercent, upperBound) {
 	let low = 1;
-	let high = quantity - 1;
+	let high = upperBound;
 	let bestCount = 0;
 	let bestSummary = null;
 
@@ -124,10 +124,12 @@ function parseGcodeSummary(gcodeText) {
 	}
 
 	const timeText = timeMatch[1].trim();
+	const dMatch = timeText.match(/(\d+)d/);
 	const hMatch = timeText.match(/(\d+)h/);
 	const mMatch = timeText.match(/(\d+)m/);
 	const sMatch = timeText.match(/(\d+)s/);
 	const totalHours =
+		(dMatch ? Number(dMatch[1]) : 0) * 24 +
 		(hMatch ? Number(hMatch[1]) : 0) +
 		(mMatch ? Number(mMatch[1]) : 0) / 60 +
 		(sMatch ? Number(sMatch[1]) : 0) / 3600;
@@ -198,32 +200,44 @@ app.post("/api/wycena", upload.single("model"), async (req, res) => {
 		let summary;
 		let mieszczySieNaJednejPlycie;
 		let liczbaWydrukow = 1;
-		let sztukNaPlyte = quantity;
 
-		const batch = await runBatchArrange(stlPath, outDir, material.filament, infill, quantity);
+		// TYMCZASOWO (do testów): zawsze szukamy realnej pojemności płyty,
+		// nawet gdy zamówienie i tak się mieści — żeby było widać w odpowiedzi
+		// ile faktycznie wchodzi. To dodatkowo spowalnia każdą wycenę (kilka
+		// próbnych cięć); do wersji produkcyjnej warto to robić tylko wtedy,
+		// gdy zamówienie się nie mieści.
+		const { maxPerPlate, plateSummary } = await findPlateCapacity(
+			stlPath,
+			outDir,
+			material.filament,
+			infill,
+			quantityRange.max
+		);
 
-		if (batch.ok) {
-			const gcodeText = await fs.readFile(path.join(outDir, "plate_1.gcode"), "utf8");
-			summary = parseGcodeSummary(gcodeText);
+		if (maxPerPlate === 0) {
+			throw new Error("Ten model jest za duży, żeby zmieścić się na płycie drukarki nawet pojedynczo.");
+		}
+
+		const sztukNaPlyte = maxPerPlate;
+
+		if (quantity <= maxPerPlate) {
 			mieszczySieNaJednejPlycie = true;
+
+			if (quantity === maxPerPlate) {
+				// Już wiemy — to dokładnie ten wynik, który znalazło wyszukiwanie.
+				summary = plateSummary;
+			} else {
+				// Wynik wyszukiwania nie dotyczy dokładnie `quantity`, więc tniemy precyzyjnie.
+				const preciseDir = path.join(outDir, "precise");
+				await fs.mkdir(preciseDir, { recursive: true });
+				await runBatchArrange(stlPath, preciseDir, material.filament, infill, quantity);
+				const preciseGcode = await fs.readFile(path.join(preciseDir, "plate_1.gcode"), "utf8");
+				summary = parseGcodeSummary(preciseGcode);
+			}
 		} else {
-			// Nie mieści się na jednej płycie — szukamy realnej pojemności (ile sztuk
-			// faktycznie wchodzi razem) i liczymy, ile osobnych wydruków to wymaga.
+			// Nie mieści się na jednej płycie — liczymy, ile osobnych wydruków to wymaga.
 			mieszczySieNaJednejPlycie = false;
 
-			const { maxPerPlate, plateSummary } = await findPlateCapacity(
-				stlPath,
-				outDir,
-				material.filament,
-				infill,
-				quantity
-			);
-
-			if (maxPerPlate === 0) {
-				throw new Error("Ten model jest za duży, żeby zmieścić się na płycie drukarki nawet pojedynczo.");
-			}
-
-			sztukNaPlyte = maxPerPlate;
 			const fullPlates = Math.floor(quantity / maxPerPlate);
 			const remainder = quantity % maxPerPlate;
 
@@ -234,13 +248,7 @@ app.post("/api/wycena", upload.single("model"), async (req, res) => {
 			if (remainder > 0) {
 				const remainderDir = path.join(outDir, "remainder");
 				await fs.mkdir(remainderDir, { recursive: true });
-				const remainderResult = await runBatchArrange(
-					stlPath,
-					remainderDir,
-					material.filament,
-					infill,
-					remainder
-				);
+				await runBatchArrange(stlPath, remainderDir, material.filament, infill, remainder);
 				const gcodeText = await fs.readFile(path.join(remainderDir, "plate_1.gcode"), "utf8");
 				const remainderSummary = parseGcodeSummary(gcodeText);
 				totalHours += remainderSummary.totalHours;
