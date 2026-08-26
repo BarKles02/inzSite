@@ -24,19 +24,22 @@ const markPath =
 		</div>
 
 		<div class="process-steps">
-			{steps.map((step) => (
+			{steps.map((step, index) => (
 				<div class="process-step">
-					<span class="process-icon">
-						{step.icon === "mark" ? (
-							<svg viewBox="0 0 24 24" aria-hidden="true">
-								<g transform="translate(5.085 2) scale(0.07018) translate(-109 -121)">
-									<path fill="#55BDF2" fill-rule="evenodd" d={markPath} />
-								</g>
-							</svg>
-						) : (
-							<svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" set:html={icons[step.icon]} />
-						)}
-					</span>
+					<div class="process-step-top">
+						<span class="process-number">{String(index + 1).padStart(2, "0")}</span>
+						<span class="process-icon">
+							{step.icon === "mark" ? (
+								<svg viewBox="0 0 24 24" aria-hidden="true">
+									<g transform="translate(5.085 2) scale(0.07018) translate(-109 -121)">
+										<path fill="#55BDF2" fill-rule="evenodd" d={markPath} />
+									</g>
+								</svg>
+							) : (
+								<svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" set:html={icons[step.icon]} />
+							)}
+						</span>
+					</div>
 					<h3>{step.title}</h3>
 					<p>{step.description}</p>
 				</div>

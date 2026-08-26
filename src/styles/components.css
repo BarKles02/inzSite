@@ -591,7 +591,6 @@
 	display: grid;
 	grid-template-columns: 1fr;
 	gap: var(--space-4);
-	counter-reset: step;
 }
 
 .process-step {
@@ -600,15 +599,18 @@
 	border-top: 2px solid var(--color-border);
 }
 
-.process-step::before {
-	counter-increment: step;
-	content: counter(step, decimal-leading-zero);
-	display: block;
+.process-step-top {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: var(--space-2);
+}
+
+.process-number {
 	font-size: 0.85rem;
 	font-weight: 700;
 	letter-spacing: 0.08em;
 	color: var(--deep-sky-blue);
-	margin-bottom: var(--space-1);
 }
 
 .process-icon {
@@ -619,7 +621,7 @@
 	justify-content: center;
 	border-radius: var(--radius-sm);
 	background-color: rgba(85, 189, 242, 0.12);
-	margin-bottom: var(--space-2);
+	flex-shrink: 0;
 }
 
 .process-icon svg {
