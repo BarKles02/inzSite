@@ -611,6 +611,23 @@
 	margin-bottom: var(--space-1);
 }
 
+.process-icon {
+	width: 44px;
+	height: 44px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: var(--radius-sm);
+	background-color: rgba(85, 189, 242, 0.12);
+	margin-bottom: var(--space-2);
+}
+
+.process-icon svg {
+	width: 24px;
+	height: 24px;
+	stroke: var(--deep-sky-blue);
+}
+
 .process-step h3 {
 	margin-bottom: 0.4rem;
 }

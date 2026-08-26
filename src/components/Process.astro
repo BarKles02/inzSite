@@ -1,10 +1,19 @@
 ---
 const steps = [
-	{ title: "Zapytanie", description: "Opisujesz potrzebę — projekt, szkic, a nawet ogólny pomysł wystarczą na start." },
-	{ title: "Wycena", description: "Przygotowujemy wycenę i harmonogram realizacji, dopasowane do zakresu prac." },
-	{ title: "Realizacja", description: "Projektujemy, drukujemy lub wykonujemy element zgodnie z ustaleniami." },
-	{ title: "Odbiór", description: "Sprawdzasz gotową realizację — w razie potrzeby wprowadzamy poprawki." },
+	{ title: "Zapytanie", description: "Opisujesz potrzebę — projekt, szkic, a nawet ogólny pomysł wystarczą na start.", icon: "question" },
+	{ title: "Wycena", description: "Przygotowujemy wycenę i harmonogram realizacji, dopasowane do zakresu prac.", icon: "quote" },
+	{ title: "Realizacja", description: "Projektujemy, drukujemy lub wykonujemy element zgodnie z ustaleniami.", icon: "mark" },
+	{ title: "Odbiór", description: "Sprawdzasz gotową realizację — w razie potrzeby wprowadzamy poprawki.", icon: "delivery" },
 ];
+
+const icons: Record<string, string> = {
+	question: `<circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12" y2="17.01"/>`,
+	quote: `<rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/>`,
+	delivery: `<path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/>`,
+};
+
+const markPath =
+	"M109,339L119,329L154,329L154,386.3Q131.5,398 109,384ZM162,329L253,329L253,385.2Q207.5,398 162,385.2ZM261,329L296,329L306,339L306,384Q283.5,398 261,386.3ZM109,392Q133.5,407.2 158,392Q207.5,407.2 257,392Q281.5,407.2 306,392L292,406L123,406ZM151,132L176,121L264,121L151,154ZM151,170L264,137L264,157L151,190ZM151,206L264,173L264,193L151,226ZM151,242L264,209L264,229L151,262ZM151,278L264,245L264,265L151,298ZM151,314L264,281L264,329L151,329Z";
 ---
 
 <section class="section process-section">
@@ -17,6 +26,17 @@ const steps = [
 		<div class="process-steps">
 			{steps.map((step) => (
 				<div class="process-step">
+					<span class="process-icon">
+						{step.icon === "mark" ? (
+							<svg viewBox="0 0 24 24" aria-hidden="true">
+								<g transform="translate(5.085 2) scale(0.07018) translate(-109 -121)">
+									<path fill="#55BDF2" fill-rule="evenodd" d={markPath} />
+								</g>
+							</svg>
+						) : (
+							<svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" set:html={icons[step.icon]} />
+						)}
+					</span>
 					<h3>{step.title}</h3>
 					<p>{step.description}</p>
 				</div>
