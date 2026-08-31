@@ -723,7 +723,9 @@
 
 /* Contact */
 .contact-section {
-	background-color: var(--ink-black);
+	background-color: #0b2036;
+	border-top: 3px solid var(--deep-sky-blue);
+	border-bottom: 3px solid var(--deep-sky-blue);
 	color: var(--bright-snow);
 }
 
@@ -776,6 +778,10 @@
 .contact-form {
 	display: grid;
 	gap: var(--space-2);
+	padding: var(--space-4);
+	background-color: rgba(85, 189, 242, 0.06);
+	border: 1px solid rgba(85, 189, 242, 0.3);
+	border-radius: var(--radius-md);
 }
 
 .form-field {
