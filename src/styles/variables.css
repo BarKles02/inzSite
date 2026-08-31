@@ -5,13 +5,32 @@
 	--cool-steel: #9cafc0;
 	--princeton-orange: #ff8a24;
 
+	/* Theme tokens — dark is the current default. Every section reads color
+	   through these, except header/contact/footer which are deliberately
+	   always-dark "bookend" sections (they use --ink-black directly, not
+	   these tokens, so they stay dark in either theme).
+	   TO REVERT TO THE LIGHT THEME: replace the 8 values below with the
+	   commented LIGHT THEME block right underneath — nothing else in the
+	   codebase needs to change. */
+	--color-bg: var(--ink-black);
+	--color-surface: #0d1c29;
+	--color-surface-alt: #142a3c;
+	--color-text: var(--bright-snow);
+	--color-text-muted: rgba(247, 250, 252, 0.68);
+	--color-accent: var(--deep-sky-blue);
+	--color-cta: var(--princeton-orange);
+	--color-border: rgba(156, 175, 192, 0.35);
+
+	/* LIGHT THEME (original) — swap the block above for this to revert:
 	--color-bg: var(--bright-snow);
+	--color-surface: var(--bright-snow);
+	--color-surface-alt: #eef3f7;
 	--color-text: var(--ink-black);
-	/* cool-steel fails WCAG AA as body text on bright-snow; darkened for contrast, kept for borders/fills */
 	--color-text-muted: #4b5b68;
 	--color-accent: var(--deep-sky-blue);
 	--color-cta: var(--princeton-orange);
 	--color-border: var(--cool-steel);
+	*/
 
 	--font-sans:
 		"Inter", "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;

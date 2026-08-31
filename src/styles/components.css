@@ -36,14 +36,14 @@
 
 .btn-secondary {
 	background-color: transparent;
-	color: var(--ink-black);
-	border-color: var(--ink-black);
+	color: var(--color-text);
+	border-color: var(--color-text);
 }
 
 .btn-secondary:hover,
 .btn-secondary:focus-visible {
-	background-color: var(--ink-black);
-	color: var(--bright-snow);
+	background-color: var(--color-text);
+	color: var(--color-bg);
 }
 
 .btn-on-dark {
@@ -183,7 +183,7 @@
 /* Hero */
 .hero {
 	position: relative;
-	background-color: var(--bright-snow);
+	background-color: var(--color-bg);
 	overflow: hidden;
 	display: flex;
 	align-items: center;
@@ -204,7 +204,7 @@
 		),
 		repeating-linear-gradient(
 			65deg,
-			rgba(8, 20, 31, 0.035) 0 1px,
+			rgba(247, 250, 252, 0.04) 0 1px,
 			transparent 1px 92px
 		);
 	animation: hero-drift 70s linear infinite;
@@ -465,7 +465,7 @@
 
 /* About */
 .about-section {
-	background-color: var(--bright-snow);
+	background-color: var(--color-surface);
 }
 
 .about-grid {
@@ -509,7 +509,7 @@
 
 /* Services */
 .services-section {
-	background-color: #eef3f7;
+	background-color: var(--color-bg);
 }
 
 .services-grid {
@@ -519,7 +519,7 @@
 }
 
 .service-card {
-	background-color: var(--bright-snow);
+	background-color: var(--color-surface-alt);
 	border: 1px solid rgba(156, 175, 192, 0.4);
 	border-radius: var(--radius-md);
 	padding: var(--space-4);
@@ -584,7 +584,7 @@
 
 /* Process */
 .process-section {
-	background-color: var(--bright-snow);
+	background-color: var(--color-surface);
 }
 
 .process-steps {
@@ -597,7 +597,7 @@
 	position: relative;
 	aspect-ratio: 1 / 1;
 	border-radius: var(--radius-md);
-	background-color: #eef3f7;
+	background-color: var(--color-surface-alt);
 	border: 1px solid rgba(156, 175, 192, 0.4);
 	overflow: hidden;
 	cursor: default;
@@ -676,7 +676,7 @@
 
 /* Portfolio */
 .portfolio-section {
-	background-color: #eef3f7;
+	background-color: var(--color-bg);
 }
 
 .portfolio-grid {
@@ -690,21 +690,21 @@
 	border-radius: var(--radius-md);
 	background: repeating-linear-gradient(
 		135deg,
-		var(--ink-black) 0 2px,
+		rgba(247, 250, 252, 0.14) 0 2px,
 		transparent 2px 14px
 	);
-	background-color: #d9e3ea;
+	background-color: var(--color-surface-alt);
 	border: 1px dashed var(--color-border);
 	display: flex;
 	align-items: flex-end;
 	padding: var(--space-2);
-	color: var(--ink-black);
+	color: var(--color-text);
 	font-weight: 600;
 	font-size: 0.9rem;
 }
 
 .portfolio-item span {
-	background-color: rgba(247, 250, 252, 0.85);
+	background-color: rgba(8, 20, 31, 0.85);
 	padding: 0.3rem 0.6rem;
 	border-radius: var(--radius-sm);
 }
